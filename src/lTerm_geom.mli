@@ -75,3 +75,13 @@ type 'a directions = {
   down : 'a;
 }
 
+(* XXX TEMP *)
+type scroll_info = {
+  scroll_bar_size : int;
+  scroll_size : int;
+  scroll_steps : int;
+  scroll_bar_offset : int;
+  window_full_size : int;
+  calc_offset : int;
+}
+

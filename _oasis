@@ -150,6 +150,13 @@ Executable focus
   MainIs: focus.ml
   BuildDepends: lambda-term
 
+Executable scroll
+  Path: examples
+  Install: false
+  CompiledObject: best
+  MainIs: scroll.ml
+  BuildDepends: lambda-term
+
 Executable checkbuttons
   Path: examples
   Install: false

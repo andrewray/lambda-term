@@ -253,6 +253,20 @@ class ['a] radiobutton : 'a radiogroup -> string -> 'a -> object
 
 end
 
+(** {6 Scrollbars} *)
+
+class type scrollable = object
+  inherit t
+  method full_size : LTerm_geom.size
+  method offset : int
+  method set_offset : int -> unit
+end
+
+class vscrollbar : scrollable -> object
+  inherit t
+  method scroll_info : LTerm_geom.scroll_info
+end
+
 (** {6 Running in a terminal} *)
 
 val run : LTerm.t -> ?save_state : bool -> ?load_resources : bool -> ?resources_file : string -> #t -> 'a Lwt.t -> 'a Lwt.t

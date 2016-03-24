@@ -134,6 +134,13 @@ class ['a] radiogroup = ['a] LTerm_buttons_impl.radiogroup
 class ['a] radiobutton = ['a] LTerm_buttons_impl.radiobutton
 
 (* +-----------------------------------------------------------------+
+   | Scrollbars                                                      |
+   +-----------------------------------------------------------------+ *)
+
+class type scrollable = LTerm_scroll_impl.scrollable
+class vscrollbar = LTerm_scroll_impl.vscrollbar
+
+(* +-----------------------------------------------------------------+
    | Running in a terminal                                           |
    +-----------------------------------------------------------------+ *)
 
