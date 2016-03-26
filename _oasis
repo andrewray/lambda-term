@@ -157,6 +157,13 @@ Executable scroll
   MainIs: scroll.ml
   BuildDepends: lambda-term
 
+Executable asciiart
+  Path: examples
+  Install: false
+  CompiledObject: best
+  MainIs: asciiart.ml
+  BuildDepends: lambda-term, camlimages.png, camlimages.jpeg
+
 Executable checkbuttons
   Path: examples
   Install: false

@@ -82,6 +82,16 @@ class frame = LTerm_containers_impl.frame
 class modal_frame = LTerm_containers_impl.modal_frame
 
 (* +-----------------------------------------------------------------+
+   | Spacing for layout control (aka glue)                           |
+   +-----------------------------------------------------------------+ *)
+
+class spacer ?(rows=0) ?(cols=0) () = object
+  inherit t "glue"
+  val size_request = { rows; cols }
+  method size_request = size_request
+end
+
+(* +-----------------------------------------------------------------+
    | Lines                                                           |
    +-----------------------------------------------------------------+ *)
 
@@ -139,6 +149,7 @@ class ['a] radiobutton = ['a] LTerm_buttons_impl.radiobutton
 
 class type scrollable = LTerm_scroll_impl.scrollable
 class vscrollbar = LTerm_scroll_impl.vscrollbar
+class hscrollbar = LTerm_scroll_impl.hscrollbar
 
 (* +-----------------------------------------------------------------+
    | Running in a terminal                                           |
