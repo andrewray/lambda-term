@@ -149,6 +149,10 @@ class frame : object
 
   method empty : unit
     (** Remove the child of the frame. *)
+
+  method set_label : ?alignment:LTerm_geom.horz_alignment -> string -> unit
+    (** Set label rendered in the top row of the frame *)
+
 end
 
 (** A widget displaying a frame around child widget. Unlike {!frame}, the child
