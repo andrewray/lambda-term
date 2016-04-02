@@ -102,9 +102,16 @@ class label : string -> object
   inherit t
 
   method text : string
-    (** The text of  the label. *)
+    (** The text of the label. *)
 
   method set_text : string -> unit
+
+  method alignment : LTerm_geom.horz_alignment
+    (** Text alignment (left, center or right). *)
+
+  method set_alignment : LTerm_geom.horz_alignment -> unit
+    (** Set text alignment. *)
+
 end
 
 (** {6 Containers} *)
@@ -166,7 +173,7 @@ class vline : t
 (** {6 Buttons} *)
 
 (** Normal button. *)
-class button : string -> object
+class button : ?brackets:string * string -> string -> object
   inherit t
 
   method label : string

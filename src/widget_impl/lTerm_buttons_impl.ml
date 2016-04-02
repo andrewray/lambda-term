@@ -19,62 +19,66 @@ class t = LTerm_widget_base_impl.t
 
 let space = Char(UChar.of_char ' ')
 
-class button initial_label = object(self)
-  inherit t "button" as super
+class button ?(brackets=("< "," >")) initial_label =
+  let bl, br = brackets in
+  let brackets_size = String.length bl + String.length br in
+  object(self)
+    inherit t "button" as super
 
-  method can_focus = true
+    method can_focus = true
 
-  val click_callbacks = Lwt_sequence.create ()
+    val click_callbacks = Lwt_sequence.create ()
 
-  method on_click ?switch f =
-    register switch click_callbacks f
+    method on_click ?switch f =
+      register switch click_callbacks f
 
-  val mutable size_request = { rows = 1; cols = 4 + Zed_utf8.length initial_label }
-  method size_request = size_request
 
-  val mutable label = initial_label
+    val mutable size_request = { rows = 1; cols = brackets_size + Zed_utf8.length initial_label }
+    method size_request = size_request
 
-  method label = label
+    val mutable label = initial_label
 
-  method set_label text =
-    label <- text;
-    size_request <- { rows = 1; cols = 4 + Zed_utf8.length text };
-    self#queue_draw
+    method label = label
 
-  initializer
-    self#on_event
-      (function
-         | LTerm_event.Key { control = false; meta = false; shift = false; code = Enter } ->
-             exec_callbacks click_callbacks ();
-             true
-         | LTerm_event.Mouse m when
-            m.button = Button1 && in_rect self#allocation (coord m) ->
-             exec_callbacks click_callbacks ();
-             true
-         | _ ->
-             false)
+    method set_label text =
+      label <- text;
+      size_request <- { rows = 1; cols = brackets_size + Zed_utf8.length text };
+      self#queue_draw
 
-  val mutable focused_style = LTerm_style.none
-  val mutable unfocused_style = LTerm_style.none
-  method update_resources =
-    let rc = self#resource_class and resources = self#resources in
-    focused_style <- LTerm_resources.get_style (rc ^ ".focused") resources;
-    unfocused_style <- LTerm_resources.get_style (rc ^ ".unfocused") resources
+    initializer
+      self#on_event
+        (function
+          | LTerm_event.Key { control = false; meta = false; shift = false; code = Enter } ->
+              exec_callbacks click_callbacks ();
+              true
+          | LTerm_event.Mouse m when
+              m.button = Button1 && in_rect self#allocation (coord m) ->
+              exec_callbacks click_callbacks ();
+              true
+          | _ ->
+              false)
 
-  method private apply_style ctx focused =
-    let style =
-      if focused = (self :> t)
-      then focused_style
-      else unfocused_style
-    in
-    LTerm_draw.fill_style ctx style
+    val mutable focused_style = LTerm_style.none
+    val mutable unfocused_style = LTerm_style.none
+    method update_resources =
+      let rc = self#resource_class and resources = self#resources in
+      focused_style <- LTerm_resources.get_style (rc ^ ".focused") resources;
+      unfocused_style <- LTerm_resources.get_style (rc ^ ".unfocused") resources
 
-  method draw ctx focused =
-    let { rows; cols } = LTerm_draw.size ctx in
-    let len = Zed_utf8.length label in
-    self#apply_style ctx focused;
-    LTerm_draw.draw_string ctx (rows / 2) ((cols - len - 4) / 2) (Printf.sprintf "< %s >" label)
-end
+    method private apply_style ctx focused =
+      let style =
+        if focused = (self :> t)
+        then focused_style
+        else unfocused_style
+      in
+      LTerm_draw.fill_style ctx style
+
+    method draw ctx focused =
+      let { rows; cols } = LTerm_draw.size ctx in
+      let len = Zed_utf8.length label in
+      self#apply_style ctx focused;
+      LTerm_draw.draw_string ctx (rows / 2) ((cols - len - 4) / 2) (Printf.sprintf "%s%s%s" bl label br)
+  end
 
 class checkbutton initial_label initial_state = object(self)
   inherit button initial_label
