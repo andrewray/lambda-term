@@ -587,9 +587,9 @@ let draw_frame ctx rect ?style connection =
   draw_piece ctx (rect.row2 - 1) (rect.col2 - 1) ?style { top = connection; bottom = Blank; left = connection; right = Blank };
   draw_piece ctx (rect.row2 - 1) (rect.col1 + 0) ?style { top = connection; bottom = Blank; left = Blank; right = connection }
 
-let draw_frame_labelled ctx rect ?style ?(alignment=H_align_left) label connection = 
+let draw_frame_labelled ctx rect ?style ?label_style ?(alignment=H_align_left) label connection = 
   draw_frame ctx rect ?style connection;
   try 
     let ctx = sub ctx { row1=0; row2=1; col1=1; col2=rect.col2-1 } in
-    draw_string_aligned ctx rect.row1 alignment label
+    draw_string_aligned ctx ?style:label_style rect.row1 alignment label
   with Out_of_bounds -> ()

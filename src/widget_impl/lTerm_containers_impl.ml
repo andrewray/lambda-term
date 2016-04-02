@@ -270,11 +270,13 @@ class frame = object(self)
   val mutable size_request = { rows = 2; cols = 2 }
   method size_request = size_request
 
-  val mutable style = LTerm_style.none
+  val mutable unfocused_style = LTerm_style.none
+  val mutable focused_style = LTerm_style.none
   val mutable connection = LTerm_draw.Light
   method update_resources =
     let rc = self#resource_class and resources = self#resources in
-    style <- LTerm_resources.get_style rc resources;
+    focused_style <- LTerm_resources.get_style (rc ^ ".focused") resources;
+    unfocused_style <- LTerm_resources.get_style (rc ^ ".unfocused") resources;
     connection <- LTerm_resources.get_connection (rc ^ ".connection") resources
 
   method private compute_size_request =
@@ -326,9 +328,17 @@ class frame = object(self)
     label <- l;
     align <- alignment
 
+  method private get_style focused = 
+    let rec f w = 
+      List.fold_left (fun b w -> b || w = focused || f w#children) false w 
+    in
+    if f self#children then focused_style
+    else unfocused_style
+
   method draw ctx focused =
     let size = LTerm_draw.size ctx in
-    LTerm_draw.fill_style ctx style;
+    let label_style = self#get_style focused in
+    LTerm_draw.fill_style ctx unfocused_style;
     if size.rows >= 1 && size.cols >= 1 then begin
       let rect = 
         { row1 = 0;
@@ -337,7 +347,7 @@ class frame = object(self)
           col2 = size.cols }
       in
       (if label = "" then LTerm_draw.draw_frame ctx rect connection
-      else LTerm_draw.draw_frame_labelled ctx rect ~alignment:align label connection);
+      else LTerm_draw.draw_frame_labelled ctx rect ~label_style ~alignment:align label connection);
       if size.rows > 2 && size.cols > 2 then
         match child with
           | Some widget ->
@@ -423,6 +433,7 @@ class modal_frame = object(self)
         (* modal_frame is drawing only inside centered area (the child widget
          * and frame around) so create appropriate drawing context *)
         let size = LTerm_draw.size work_ctx in
+        let style = unfocused_style in
         if size.rows >= 1 && size.cols >= 1 then begin
           LTerm_draw.fill_style work_ctx style;
           LTerm_draw.clear work_ctx;
