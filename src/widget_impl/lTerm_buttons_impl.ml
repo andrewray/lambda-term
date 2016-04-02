@@ -77,7 +77,8 @@ class button ?(brackets=("< "," >")) initial_label =
       let { rows; cols } = LTerm_draw.size ctx in
       let len = Zed_utf8.length label in
       self#apply_style ctx focused;
-      LTerm_draw.draw_string ctx (rows / 2) ((cols - len - 4) / 2) (Printf.sprintf "%s%s%s" bl label br)
+      LTerm_draw.draw_string ctx (rows / 2) ((cols - len - brackets_size) / 2) 
+        (Printf.sprintf "%s%s%s" bl label br)
   end
 
 class checkbutton initial_label initial_state = object(self)
