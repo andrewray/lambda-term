@@ -63,8 +63,9 @@ open CamomileLibrary
 (* scrollable asciiart widget *)
 class asciiart img = object(self)
   inherit t "asciiart" as super
+  inherit default_scrollable_document as doc
 
-  method can_focus = false
+  method can_focus = true
 
   (* scroll interface *)
   method document_size = { 
@@ -72,12 +73,12 @@ class asciiart img = object(self)
     cols = img#width / !avg_cols;
   }
 
-  method page_size = size_of_rect self#allocation
+  initializer
+    doc#set_document_size self#document_size
 
-  val mutable voffset = 0
-  val mutable hoffset = 0
-  method set_voffset o = voffset <- o
-  method set_hoffset o = hoffset <- o
+  method set_allocation r = 
+    super#set_allocation r;
+    doc#set_page_size (size_of_rect r)
 
   val style = 
     LTerm_style.({ none with foreground=Some white; 
@@ -97,10 +98,46 @@ class asciiart img = object(self)
       for col=0 to cols-1 do
         LTerm_draw.draw_char ~style ctx row col @@ 
           UChar.of_char palette.[ 
-            try img.(row + voffset).(col + hoffset) with _ -> 0 
+            try img.(row + self#vscroll#offset).(col + self#hscroll#offset) with _ -> 0 
           ]
       done
     done
+
+  initializer self#on_event (fun ev ->
+    let open LTerm_mouse in
+    match ev with
+    | LTerm_event.Mouse m when m.button=Button1 ->
+      let alloc = self#allocation in
+      let size = size_of_rect alloc in
+      (* delta from center of screen *)
+      self#vscroll#set_offset 
+        (self#vscroll#offset + m.LTerm_mouse.row - alloc.row1 - size.rows/2);
+      self#hscroll#set_offset 
+        (self#hscroll#offset + m.LTerm_mouse.col - alloc.col1 - size.cols/2);
+      true
+    (* adjust scale, which changes the document size *)
+    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 'w' ->
+      avg_rows := max 1 (!avg_rows - 1);
+      doc#set_document_size self#document_size;
+      self#queue_draw; true
+    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 's' ->
+      avg_rows := !avg_rows + 1; 
+      doc#set_document_size self#document_size;
+      self#queue_draw; true
+    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 'a' ->
+      avg_cols := max 1 (!avg_cols - 1); 
+      doc#set_document_size self#document_size;
+      self#queue_draw; true
+    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 'd' ->
+      avg_cols := !avg_cols + 1; 
+      doc#set_document_size self#document_size;
+      self#queue_draw; true
+    (* page up/down *)
+    | LTerm_event.Key{LTerm_key.code=LTerm_key.Next_page} ->
+      doc#page.down (); self#queue_draw; true
+    | LTerm_event.Key{LTerm_key.code=LTerm_key.Prev_page} ->
+      doc#page.up (); self#queue_draw; true
+    | _ -> false)
 
 end
 
@@ -145,14 +182,6 @@ let main () =
   top#on_event (function (* quit with escape key *)
     | LTerm_event.Key{LTerm_key.code=LTerm_key.Escape} -> 
       wakeup wakener (); false 
-    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 'w' ->
-      avg_rows := max 1 (!avg_rows - 1); top#queue_draw; true
-    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 's' ->
-      avg_rows := !avg_rows + 1; top#queue_draw; true
-    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 'a' ->
-      avg_cols := max 1 (!avg_cols - 1); top#queue_draw; true
-    | LTerm_event.Key{LTerm_key.code=LTerm_key.Char c} when c = UChar.of_char 'd' ->
-      avg_cols := !avg_cols + 1; top#queue_draw; true
     | _ -> false);
 
   Lazy.force LTerm.stdout >>= fun term ->

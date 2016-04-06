@@ -269,6 +269,8 @@ end
 
 (** {6 Scrollbars} *)
 
+(** {8 Interfaces} *)
+
 (** Adjustable integer value from (0..range-1) *)
 class type adjustment = object
 
@@ -296,25 +298,26 @@ class type adjustment = object
      (int -> unit) -> unit
     (** [on_offset_change ?switch f] calls f when the offset changes. *)
 
+end
+
+(** Interface between an adjustment and scrollbar *)
+class type scrollable_adjustment = object
+
+  (* public interface *)
+
+  inherit adjustment
+
   method incr : unit
-    (** increment offset by one step 
+    (** Increment offset by one step 
     
     If range > number of scroll bar steps then step>=1. *)
 
   method decr : unit
-    (** decrement offset by one step *)
+    (** Decrement offset by one step *)
 
-end
-
-class type scrollbar = object
-  inherit t
-  inherit adjustment
-
-  method scroll_bar_size : int
-    (** Size of scroll bar *)
-
-  method scroll_of_mouse : int -> int
-    (** Convert mouse coord to a scroll offset *)
+  method mouse_scroll : int -> unit
+    (** [adj#mouse_scroll offset] updates the scroll bar based on a click
+    [offset] units from the top/left *)
 
   method set_scroll_bar_mode : [ `fixed of int | `dynamic of int ] -> unit
     (** Configure how the size of the scrollbar is calculated.
@@ -345,42 +348,88 @@ class type scrollbar = object
   method set_max_scroll_bar_size : int -> unit
     (** Set the maximum scroll bar size (default: scroll window size *)
 
+  method on_scrollbar_change : ?switch:LTerm_widget_callbacks.switch -> 
+    (unit -> unit) -> unit
+    (** [on_scrollbar_change ?switch f] calls f when the scrollbar is changed and
+     needs to be re-drawn. *)
+
+  (* private scrollbar interface *)
+
+  method set_scroll_window_size : int -> unit
+    (** {i implementation specific} The attached scroll bar needs to
+    set its window size during [set_allocation] *)
+
+  method get_render_params : int * int * int
+    (** {i implementation specific} Provide the scroll bar with rendering
+    parameters *)
+
 end
 
-(** Vertically oriented scrollbar *)
-class vscrollbar : ?rc:string -> ?width:int -> unit -> scrollbar
-
-(** Horizontally oriented scrollbar *)
-class hscrollbar : ?rc:string -> ?height:int -> unit -> scrollbar
-
-(** Type of widget containing a scrollable document *)
+(** Interface for documents which can be scrolled *)
 class type scrollable_document = object
 
-  method document_size : LTerm_geom.size
+  method set_document_size : LTerm_geom.size -> unit
     (** Size of the document *)
 
-  method page_size : LTerm_geom.size
+  method set_page_size : LTerm_geom.size -> unit
     (** Size of a page *)
 
-  method set_voffset : int -> unit
-    (** Set vertical offset *)
+  method page : (unit -> unit) LTerm_geom.directions 
+    (** Scroll by 1 page *)
 
-  method set_hoffset : int -> unit
-    (** Set horizontal offset *)
+  method vscroll : scrollable_adjustment
+    (** Vertical scroll *)
 
+  method hscroll : scrollable_adjustment
+    (** Horizontal scroll *)
+
+end
+
+(** {8 Interface implementations} *)
+
+(** Default implementation of the [scrollable_adjustment] interface *)
+class default_scrollable_adjustment : scrollable_adjustment
+
+(** Default implementation of the [scrollable_document] interface *)
+class default_scrollable_document : scrollable_document
+
+(** {8 Scrollbar widgets} *)
+
+(** Vertically oriented scrollbar.  Passed a [scrollable_adjustment] interface. *)
+class vscrollbar_for_adjustment  : ?rc:string -> ?width:int -> #scrollable_adjustment -> t
+
+(** Horizontally oriented scrollbar.  Passed a [scrollable_adjustment] interface. *)
+class hscrollbar_for_adjustment  : ?rc:string -> ?height:int -> #scrollable_adjustment -> t
+
+(** Standalone vertical scrollbar *)
+class vscrollbar : ?rc:string -> ?width:int -> unit -> object
+  inherit t
+  inherit scrollable_adjustment
+end
+
+(** Standalone vertical scrollbar *)
+class hscrollbar : ?rc:string -> ?height:int -> unit -> object
+  inherit t
+  inherit scrollable_adjustment
 end
 
 (** Vertical scrollbar for scrollable widgets *)
-class vscrollbar_for_document : ?width:int -> #scrollable_document -> scrollbar
+class vscrollbar_for_document : ?width:int -> #scrollable_document -> t
 
 (** Horizontal scrollbar for scrollable widgets *)
-class hscrollbar_for_document : ?height:int -> #scrollable_document -> scrollbar
+class hscrollbar_for_document : ?height:int -> #scrollable_document -> t
 
 (** Vertical slider *)
-class vslider : int -> scrollbar
+class vslider : int -> object
+  inherit t
+  inherit scrollable_adjustment
+end
 
 (** Horizontal slider *)
-class hslider : int -> scrollbar
+class hslider : int -> object
+  inherit t
+  inherit scrollable_adjustment
+end
 
 (** {6 Running in a terminal} *)
 
