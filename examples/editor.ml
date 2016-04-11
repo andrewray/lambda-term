@@ -16,7 +16,7 @@ let main () =
   let hbox = new LTerm_widget.hbox in
   let frame = new LTerm_widget.frame in
   let editor = new LTerm_edit.edit () in
-  let vscroll = new LTerm_widget.vscrollbar_for_document editor in
+  let vscroll = new LTerm_widget.vscrollbar editor#vscroll in
   frame#set editor;
   hbox#add frame;
   hbox#add vscroll;

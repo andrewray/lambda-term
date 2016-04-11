@@ -70,7 +70,6 @@ val macro : action Zed_macro.t
     global one is used. *)
 class edit : ?clipboard : Zed_edit.clipboard -> ?macro : action Zed_macro.t -> unit -> object
   inherit LTerm_widget.t
-  inherit LTerm_widget.scrollable_document
 
   method engine : edit Zed_edit.t
     (** The edition engine used by this widget. *)
@@ -103,4 +102,7 @@ class edit : ?clipboard : Zed_edit.clipboard -> ?macro : action Zed_macro.t -> u
   method set_locale : string option -> unit
 
   method bind : LTerm_key.t list -> action list -> unit
+
+  method vscroll : LTerm_widget.scrollable
+
 end
