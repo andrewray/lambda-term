@@ -54,17 +54,17 @@ let right coord = { coord with col = succ coord.col }
 let up coord = { coord with row = pred coord.row }
 let down coord = { coord with row = succ coord.row }
 
+let get_center_coord widget = 
+  let rect = widget#allocation in
+  { col = (rect.col1 + rect.col2) / 2; 
+    row = (rect.row1 + rect.row2) / 2 }
+
 let focus_to (dir,incr_dir) f root focused coord =
-  let get_coord widget = 
-    let rect = widget#allocation in
-    { col = (rect.col1 + rect.col2) / 2; 
-      row = (rect.row1 + rect.row2) / 2 }
-  in
   match get_focus focused#focus dir with
   | `set_focus(widget) -> 
     (* If the currently focused widget has a focus specification for
        the given direction jump directly to that widget *)
-    Some(widget, get_coord widget)
+    Some(widget, get_center_coord widget)
   | `none ->
     (* Otherwise project a line in the appropriate direction until we hit a widget. *)
     let rect = root#allocation in
@@ -82,7 +82,7 @@ let focus_to (dir,incr_dir) f root focused coord =
             let rect = widget#allocation in
             Some (widget, f rect coord)
         | `set_focus widget -> (* note; this allows widget=focused, if specified *)
-            Some (widget, get_coord widget)
+            Some (widget, get_center_coord widget)
     in
     loop coord
 
@@ -121,16 +121,15 @@ class toplevel focused widget = object(self)
     coord <- { row = (rect.row1 + rect.row2) / 2;
                col = (rect.col1 + rect.col2) / 2 }
 
-  method move_focus_to = function
-    | Some (widget, c) ->
-      coord <- c;
-      focused := widget;
-      self#queue_draw
-    | None ->
-      ()
+  method move_focus_to ?c widget = 
+    coord <- (match c with Some(c) -> c | None -> get_center_coord widget);
+    focused := widget;
+    self#queue_draw
 
   method private move_focus direction =
-    self#move_focus_to @@ direction (self :> t) !focused coord 
+    match direction (self :> t) !focused coord with
+    | Some(widget, c) -> self#move_focus_to ~c widget
+    | None -> ()
 
   method private process_arrows = function
     | LTerm_event.Key { control = false; meta = false; shift = false; code = Left } ->

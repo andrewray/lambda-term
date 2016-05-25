@@ -160,8 +160,8 @@ let run_modal term ?save_state ?(load_resources = true) ?(resources_file = lambd
       | Event ((LTerm_event.Mouse m) as ev) when LTerm_mouse.(m.button=Button1) -> begin
           let picked = pick LTerm_mouse.(coord m) (toplevel :> t) in
           match picked with
-          | Some _ -> (* move focus and send it the event *)
-            toplevel#move_focus_to picked;
+          | Some(widget,c) -> (* move focus and send it the event *)
+            toplevel#move_focus_to ~c widget;
             !(List.hd !focuses)#send_event ev;
             loop ()
           | None -> (* nothing got focus, so drop the event *)

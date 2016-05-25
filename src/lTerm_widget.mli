@@ -40,6 +40,10 @@ class t : string -> object
   method set_focus : t option LTerm_geom.directions -> unit
     (** Sets the target widgets when changing focus. *)
 
+  method move_focus_to : ?c:LTerm_geom.coord -> t -> unit
+    (** move focus to specified widget.  If c is not specified it defaults
+        to the center of the widget *)
+
   method queue_draw : unit
     (** Enqueue a redraw operation. If the widget has a parent, this
         is the same as calling the {!queue_draw} method of the parent,
