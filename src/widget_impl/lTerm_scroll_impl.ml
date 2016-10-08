@@ -293,8 +293,8 @@ class vscrollbar
   method size_request = { rows=0; cols=width }
 
   method private mouse_offset m alloc = m.LTerm_mouse.row - alloc.row1 
-  val scroll_incr_key = LTerm_key.{ control = false; meta = false; shift = true; code=Down} 
-  val scroll_decr_key = LTerm_key.{ control = false; meta = false; shift = true; code=Up} 
+  val scroll_incr_key = LTerm_key.({ control = false; meta = false; shift = true; code=Down}) 
+  val scroll_decr_key = LTerm_key.({ control = false; meta = false; shift = true; code=Up})
   method private scroll_incr_key = scroll_incr_key
   method private scroll_decr_key = scroll_decr_key
 
@@ -332,8 +332,8 @@ class hscrollbar
   method size_request = { rows=height; cols=0 }
 
   method private mouse_offset m alloc = m.LTerm_mouse.col - alloc.col1 
-  val scroll_incr_key = LTerm_key.{ control = false; meta = false; shift = true; code=Right} 
-  val scroll_decr_key = LTerm_key.{ control = false; meta = false; shift = true; code=Left} 
+  val scroll_incr_key = LTerm_key.({ control = false; meta = false; shift = true; code=Right}) 
+  val scroll_decr_key = LTerm_key.({ control = false; meta = false; shift = true; code=Left})
   method private scroll_incr_key = scroll_incr_key
   method private scroll_decr_key = scroll_decr_key
 

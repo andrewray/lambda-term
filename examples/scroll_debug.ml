@@ -15,8 +15,8 @@ class scroll_label scroll = object(self)
   inherit label "scroll"
   method can_focus = false
   method size_request = { rows=1; cols=0 }
-  val style = LTerm_style.{none with foreground = Some red;
-                                     background = Some green };
+  val style = LTerm_style.({none with foreground = Some red;
+                                      background = Some green });
   method draw ctx focused = 
     LTerm_draw.fill_style ctx style;
     LTerm_draw.draw_string_aligned ctx 0 H_align_center ~style
